@@ -3,23 +3,26 @@ import { SubscribeCommand } from "../node_modules/@aws-sdk/client-sns";
 import { snsClient } from "./api/client.js";
 
 export default function Home() {
-  // Set the parameters
-  const params = {
-    Protocol: "email" /* required */,
-    TopicArn: process.env.NEXT_PUBLIC_AWS_TOPIC_ARN, //TOPIC_ARN
-    Endpoint: "wabiv63525@sinagalore.com", //EMAIL_ADDRESS
-  };
+  async function Register() {
+    const email = document.querySelector("#userEmail").value;
 
-  const run = async () => {
+    const params = {
+      Protocol: "email" /* required */,
+      TopicArn: process.env.NEXT_PUBLIC_AWS_TOPIC_ARN, //TOPIC_ARN
+      Endpoint: email, //EMAIL_ADDRESS
+    };
+
     try {
       const data = await snsClient.send(new SubscribeCommand(params));
+      alert("Your email was successfully sign up!");
+      document.querySelector("#userEmail").innerHTML = "";
       console.log("Success.", data);
       return data; // For unit tests.
     } catch (err) {
+      alert("Type a valid email address!");
       console.log("Error", err.stack);
     }
-  };
-  run();
+  }
 
   return (
     <div className="main">
@@ -32,7 +35,7 @@ export default function Home() {
         </strong>
       </p>
       <input id="userEmail" type="email" placeholder="✉ Type your email" />
-      <button>Sign up</button>
+      <button onClick={() => Register()}>Sign up</button>
     </div>
   );
 }
