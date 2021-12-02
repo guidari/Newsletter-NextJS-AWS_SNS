@@ -1,8 +1,11 @@
 // Import required AWS SDK clients and commands for Node.js
-import { SubscribeCommand } from "../node_modules/@aws-sdk/client-sns";
+import {
+  SubscribeCommand,
+  ListSubscriptionsByTopicCommand,
+} from "../node_modules/@aws-sdk/client-sns";
 import { snsClient } from "./api/client.js";
 
-export default function Home() {
+export default function Home({ SubscribeNumbers }) {
   async function Register() {
     const email = document.querySelector("#userEmail").value;
 
@@ -31,11 +34,31 @@ export default function Home() {
       <p>
         Be part of our community with
         <strong>
-          <span id="SubscribeNumbers"> 3</span> active readers
+          <span id="SubscribeNumbers"> {SubscribeNumbers}</span> active readers
         </strong>
       </p>
       <input id="userEmail" type="email" placeholder="✉ Type your email" />
       <button onClick={() => Register()}>Sign up</button>
     </div>
   );
+}
+
+export async function getStaticProps() {
+  // Set the parameters
+  const params = {
+    TopicArn: "arn:aws:sns:sa-east-1:785032200345:news-letter-test",
+  }; //TOPIC_ARN
+
+  const data = await snsClient.send(
+    new ListSubscriptionsByTopicCommand(params)
+  );
+  const subs = data.Subscriptions;
+  const qtd = subs.filter(function (sub) {
+    return sub.SubscriptionArn === "PendingConfirmation" && "Deleted";
+  });
+  const SubscribeNumbers = subs.length - qtd.length;
+
+  return {
+    props: { SubscribeNumbers },
+  };
 }
